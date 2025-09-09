@@ -1,2 +1,4 @@
-# shopee-bot
-shopee
+shopee-bot/
+│── main.py
+│── requirements.txt
+│── README.md
