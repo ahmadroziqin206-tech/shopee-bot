@@ -1,28 +1,32 @@
 import os
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from flask import Flask
+from threading import Thread
 
-# Ambil token dari environment variable
 TOKEN = os.environ["TOKEN"]
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# Web server biar selalu hidup
+app_flask = Flask('')
+
+@app_flask.route('/')
+def home():
+    return "Bot Shopee jalan 🚀"
+
+def run():
+    app_flask.run(host="0.0.0.0", port=8080)
+
+Thread(target=run).start()
+
+# Bot Telegram
+async def start(update, context):
     await update.message.reply_text("Halo! Bot Shopee siap jalan 🚀")
 
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
-    await update.message.reply_text(f"Kamu ngetik: {text}")
+async def echo(update, context):
+    await update.message.reply_text(update.message.text)
 
-def main():
-    app = Application.builder().token(TOKEN).build()
+app = Application.builder().token(TOKEN).build()
+app.add_handler(CommandHandler("start", start))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
-    # command /start
-    app.add_handler(CommandHandler("start", start))
-
-    # echo semua pesan teks
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
-
-    print("Bot running...")
-    app.run_polling()
-
-if __name__ == "__main__":
-    main()
+print("Bot running...")
+app.run_polling()
